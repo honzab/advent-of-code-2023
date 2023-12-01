@@ -8,8 +8,10 @@ import "io"
 import "strconv"
 
 func main() {
+	WORDS := []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
 	var sum uint64
 	scanner := bufio.NewScanner(os.Stdin)
+
 	for scanner.Scan() {
 		err := scanner.Err()
 		if err == io.EOF {
@@ -18,13 +20,22 @@ func main() {
 		value := scanner.Text()
 
 		digits := make([]uint64, 0)
-		for _, v := range value {
+		for i, v := range value {
 			if unicode.IsDigit(v) {
 				value, err := strconv.ParseUint(string(v), 10, 64)
 				if err != nil {
 					return
 				}
 				digits = append(digits, value)
+			} else {
+				for j, w := range WORDS {
+					if i+len(w) > len(value) {
+						continue
+					}
+					if value[i:i+len(w)] == w {
+						digits = append(digits, uint64(j+1))
+					}
+				}
 			}
 		}
 
