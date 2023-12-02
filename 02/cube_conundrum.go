@@ -77,18 +77,29 @@ func main() {
 	haveGreens := uint64(13)
 	haveBlues := uint64(14)
 	sumIds := uint64(0)
+	sumPowers := uint64(0)
 	for _, g := range games {
 		possible := true
+
+		minReds := uint64(0)
+		minGreens := uint64(0)
+		minBlues := uint64(0)
+
 		for _, d := range g.Draws {
 			if d.Green > haveGreens || d.Red > haveReds || d.Blue > haveBlues {
 				possible = false
-				break
 			}
+			minReds = max(minReds, d.Red)
+			minGreens = max(minGreens, d.Green)
+			minBlues = max(minBlues, d.Blue)
 		}
 		if possible {
 			sumIds += g.Id
 		}
-		log.Printf("Checking game %d: possible %v", g.Id, possible)
+		power := minBlues * minReds * minGreens
+		sumPowers += power
+		log.Printf("Checking game %d: possible %v, power: %d", g.Id, possible, power)
 	}
 	log.Printf("%d\n", sumIds)
+	log.Printf("%d\n", sumPowers)
 }
