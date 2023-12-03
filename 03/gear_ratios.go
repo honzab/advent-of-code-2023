@@ -23,7 +23,6 @@ var SCHEMATICS []string
 func checkStringForSymbols(line string) bool {
 	symbol := regexp.MustCompile(`^[0-9\.]+$`)
 	matching := symbol.MatchString(line)
-	//log.Printf("Checking line %s: %v\n", line, !matching)
 	return !matching
 }
 
@@ -32,32 +31,46 @@ func isAdjacentToSymbol(lineNumber, index, length int) uint64 {
 
 	leftBound := max(0, index-1)
 	rightBound := min(len(SCHEMATICS[lineNumber]), length+1)
+	isAdjacent := false
+	var line string
+
 	if lineNumber-1 >= 0 {
-		if checkStringForSymbols(SCHEMATICS[lineNumber-1][leftBound:rightBound]) {
-			return n
+		line = SCHEMATICS[lineNumber-1][leftBound:rightBound]
+		if checkStringForSymbols(line) {
+			isAdjacent = true
 		}
+		checkStringForStars(line, lineNumber-1, leftBound, n)
 	}
 	if index > 0 {
-		if checkStringForSymbols(SCHEMATICS[lineNumber][index-1 : index]) {
-			return n
+		line = SCHEMATICS[lineNumber][index-1 : index]
+		if checkStringForSymbols(line) {
+			isAdjacent = true
 		}
+		checkStringForStars(line, lineNumber, index-1, n)
 	}
 	if length+1 <= len(SCHEMATICS[lineNumber]) {
-		if checkStringForSymbols(SCHEMATICS[lineNumber][length : length+1]) {
-			return n
+		line = SCHEMATICS[lineNumber][length : length+1]
+		if checkStringForSymbols(line) {
+			isAdjacent = true
 		}
+		checkStringForStars(line, lineNumber, length, n)
 	}
 	if lineNumber+1 < len(SCHEMATICS) {
-		if checkStringForSymbols(SCHEMATICS[lineNumber+1][leftBound:rightBound]) {
-			return n
+		line = SCHEMATICS[lineNumber+1][leftBound:rightBound]
+		if checkStringForSymbols(line) {
+			isAdjacent = true
 		}
+		checkStringForStars(line, lineNumber+1, leftBound, n)
+	}
+	if isAdjacent {
+		return n
 	}
 	return 0
 }
 
 var ToMultiply map[string][]uint64
 
-func checkStringForStars(line string, lineIndex, lb, rb int, n uint64) bool {
+func checkStringForStars(line string, lineIndex, lb int, n uint64) {
 	symbol := regexp.MustCompile(`[*]`)
 	matching := symbol.FindAllStringIndex(line, len(line))
 
@@ -69,35 +82,6 @@ func checkStringForStars(line string, lineIndex, lb, rb int, n uint64) bool {
 			ToMultiply[key] = append(ToMultiply[key], n)
 		}
 	}
-	return len(matching) > 0
-}
-
-func isAdjacentToAStar(lineNumber, index, length int) uint64 {
-	n := parseUint64(SCHEMATICS[lineNumber][index:length])
-
-	leftBound := max(0, index-1)
-	rightBound := min(len(SCHEMATICS[lineNumber]), length+1)
-	if lineNumber-1 >= 0 {
-		if checkStringForStars(SCHEMATICS[lineNumber-1][leftBound:rightBound], lineNumber-1, leftBound, rightBound, n) {
-			return n
-		}
-	}
-	if index > 0 {
-		if checkStringForStars(SCHEMATICS[lineNumber][index-1:index], lineNumber, index-1, index, n) {
-			return n
-		}
-	}
-	if length+1 <= len(SCHEMATICS[lineNumber]) {
-		if checkStringForStars(SCHEMATICS[lineNumber][length:length+1], lineNumber, length, length+1, n) {
-			return n
-		}
-	}
-	if lineNumber+1 < len(SCHEMATICS) {
-		if checkStringForStars(SCHEMATICS[lineNumber+1][leftBound:rightBound], lineNumber+1, leftBound, rightBound, n) {
-			return n
-		}
-	}
-	return 0
 }
 
 func main() {
@@ -123,13 +107,6 @@ func main() {
 		}
 	}
 	log.Printf("%d\n", sum)
-
-	for i, line := range SCHEMATICS {
-		numbers := numberRegexp.FindAllStringIndex(line, len(line))
-		for _, n := range numbers {
-			isAdjacentToAStar(i, n[0], n[1])
-		}
-	}
 
 	gearSum := uint64(0)
 	for _, v := range ToMultiply {
