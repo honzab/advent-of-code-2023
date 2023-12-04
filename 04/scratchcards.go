@@ -66,11 +66,18 @@ func main() {
 		cards = append(cards, Card{Id: parseUint64(id[0][1]), Scratched: scratched[1:], NumbersHave: have})
 	}
 
+	cardCounts := make(map[uint64]uint64, len(cards))
+	for _, c := range cards {
+		cardCounts[c.Id] = 1
+	}
+
 	sum := uint64(0)
 	for _, card := range cards {
 		cardValue := 0
+		matchingNumbers := uint64(0)
 		for _, number := range card.Scratched {
 			if inSlice(number, card.NumbersHave) {
+				matchingNumbers += 1
 				if cardValue == 0 {
 					cardValue = 1
 				} else {
@@ -78,9 +85,18 @@ func main() {
 				}
 			}
 		}
+		for w := uint64(0); w < cardCounts[card.Id]; w++ {
+			for l := uint64(card.Id + 1); l < min(card.Id+1+matchingNumbers, uint64(len(cards)+1)); l++ {
+				cardCounts[l] += 1
+			}
+		}
 		sum += uint64(cardValue)
 	}
+	log.Printf("%v", sum)
 
-	log.Printf("%d\n", sum)
-
+	totalScratchcards := uint64(0)
+	for _, c := range cardCounts {
+		totalScratchcards += c
+	}
+	log.Printf("%d\n", totalScratchcards)
 }
