@@ -91,29 +91,39 @@ func main() {
 		}
 	}
 
-	ways := make(map[int64]int64)
-	distances := make([]int64, 0)
-
-	for _, seedId := range seeds {
-		curentNodeId := seedId
-		for i := int64(1); i < 8; i++ {
-			for _, mappingRange := range mapping[i] {
-				if mappingRange.To <= curentNodeId && curentNodeId < mappingRange.To+mappingRange.Length {
-					diff := mappingRange.From - mappingRange.To
-					curentNodeId += diff
-					break
-				}
-			}
-		}
-		ways[seedId] = curentNodeId
-		distances = append(distances, curentNodeId)
-	}
-
 	shortestDistance := int64(0)
-	for i, e := range distances {
+	for i, seedId := range seeds {
+		e := walkTroughForSeed(seedId, mapping)
 		if i == 0 || e < shortestDistance {
 			shortestDistance = e
 		}
 	}
 	log.Printf("%d", shortestDistance)
+
+	shortestDistance = int64(-1)
+	for q := int64(0); q < int64(len(seeds)); q += 2 {
+		seedId := seeds[q]
+		length := seeds[q+1]
+		for j := seedId; j < seedId+length; j++ {
+			e := walkTroughForSeed(j, mapping)
+			if shortestDistance == -1 || e < shortestDistance {
+				shortestDistance = e
+			}
+		}
+	}
+	log.Printf("%d", shortestDistance)
+}
+
+func walkTroughForSeed(seedId int64, mapping map[int64][]Range) int64 {
+	curentNodeId := seedId
+	for i := int64(1); i < 8; i++ {
+		for _, mappingRange := range mapping[i] {
+			if mappingRange.To <= curentNodeId && curentNodeId < mappingRange.To+mappingRange.Length {
+				diff := mappingRange.From - mappingRange.To
+				curentNodeId += diff
+				break
+			}
+		}
+	}
+	return curentNodeId
 }
