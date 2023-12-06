@@ -38,6 +38,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	numberRegexp := regexp.MustCompile(`([0-9]+)`)
 	races := make([]Race, 0)
+	var fixedRace Race
 
 	for scanner.Scan() {
 		err := scanner.Err()
@@ -52,12 +53,14 @@ func main() {
 			for _, t := range times {
 				races = append(races, Race{parseUint64(t[1]), 0})
 			}
+			fixedRace = Race{Time: parseUint64(strings.ReplaceAll(strings.Split(line, ":")[1], " ", ""))}
 		}
 		if strings.Contains(line, "Distance:") {
 			distances := numberRegexp.FindAllStringSubmatch(strings.Split(line, ":")[1], len(line))
 			for i, d := range distances {
 				races[i] = Race{races[i].Time, parseUint64(d[1])}
 			}
+			fixedRace.Record = parseUint64(strings.ReplaceAll(strings.Split(line, ":")[1], " ", ""))
 		}
 	}
 
@@ -67,5 +70,7 @@ func main() {
 	}
 
 	log.Printf("%d\n", result)
+
+	log.Printf("%d\n", findWaysToRace(&fixedRace))
 
 }
